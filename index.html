@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCL90心理测评</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SCL-90 症状自评量表</h1>
+        </header>
+
+        <main>
+            <!-- 兑换码验证页面 -->
+            <div id="code-verification" class="section active">
+                <h2>兑换码验证</h2>
+                <p>请输入您的兑换码以访问测评</p>
+                <div class="code-input-container">
+                    <input type="text" id="code-input" placeholder="请输入兑换码" maxlength="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text">
+                    <button id="verify-btn">验证</button>
+                </div>
+                <p id="code-error" class="error-message"></p>
+            </div>
+
+            <!-- 管理登录页面 -->
+            <div id="admin-login" class="section">
+                <h2>管理员登录</h2>
+                <p>请输入管理员密码</p>
+                <div class="login-container">
+                    <input type="password" id="admin-password" placeholder="请输入密码">
+                    <button id="login-btn">登录</button>
+                </div>
+                <p id="login-error" class="error-message"></p>
+            </div>
+
+            <!-- 管理页面 -->
+            <div id="admin-panel" class="section">
+                <h2>兑换码管理</h2>
+                <div class="admin-actions">
+                    <button id="generate-code-btn">生成新兑换码</button>
+                    <button id="logout-btn">退出</button>
+                </div>
+                <div class="code-list">
+                    <h3>有效兑换码</h3>
+                    <table id="code-table">
+                        <thead>
+                            <tr>
+                                <th>兑换码</th>
+                                <th>有效期至</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="code-table-body">
+                            <!-- 兑换码列表将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="generate-result" id="generate-result">
+                    <!-- 生成结果将显示在这里 -->
+                </div>
+            </div>
+
+            <!-- 测评说明页面 -->
+            <div id="intro" class="section">
+                <p>SCL-90（Symptom Checklist 90）是一种常用的心理健康自评量表，包含90个项目，涉及感觉、情感、思维、意识、行为、生活习惯、人际关系、饮食睡眠等多个方面。</p>
+                <p><strong>测评说明：</strong></p>
+                <ul>
+                    <li>量表只是辅助筛查工具，可以发现和了解自己的情绪状态，测试结果仅供参考，不代表实际诊断。</li>
+                    <li>请仔细阅读以下每一条陈述，并根据您<span class="highlight">最近一周</span>内的实际感受，选择最适合的答案。</li>
+                    <li>有些题目可能与你不符或从未思考过，如有这种情况请选出一个你个人倾向性的答案。本测验适用对象为16岁以上的成人，不适于躁狂症和精神分裂症。</li>
+                </ul>
+                <p><strong>测评时间：</strong>约10-15分钟</p>
+                <p><strong>评分标准：</strong></p>
+                <ul>
+                    <li>1分：没有</li>
+                    <li>2分：很轻</li>
+                    <li>3分：中等</li>
+                    <li>4分：偏重</li>
+                    <li>5分：严重</li>
+                </ul>
+                <button id="start-btn">开始测评</button>
+            </div>
+
+            <!-- 问卷页面 -->
+            <div id="questionnaire" class="section">
+                <div class="progress">
+                    <div class="progress-bar" id="progress-bar"></div>
+                    <span id="progress-text">0/90</span>
+                </div>
+
+                <div class="question" id="question-container">
+                    <h3 id="question-number">问题 1/90</h3>
+                    <p id="question-text">头痛</p>
+                    <div class="options">
+                        <label><input type="radio" name="answer" value="1" onchange="saveAnswer(event)"> 1. 没有</label>
+                        <label><input type="radio" name="answer" value="2" onchange="saveAnswer(event)"> 2. 很轻</label>
+                        <label><input type="radio" name="answer" value="3" onchange="saveAnswer(event)"> 3. 中等</label>
+                        <label><input type="radio" name="answer" value="4" onchange="saveAnswer(event)"> 4. 偏重</label>
+                        <label><input type="radio" name="answer" value="5" onchange="saveAnswer(event)"> 5. 严重</label>
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button id="prev-btn" disabled>上一题</button>
+                    <button id="next-btn">下一题</button>
+                </div>
+            </div>
+
+            <!-- 结果页面 -->
+            <div id="results" class="section">
+                <h2>测评结果</h2>
+                <div class="results-summary">
+                    <div class="result-item">
+                        <span class="result-label">总分：</span>
+                        <span class="result-value" id="total-score">0</span>
+                        <span class="result-reference" id="total-reference"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">总均分：</span>
+                        <span class="result-value" id="average-score">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">阳性项目数：</span>
+                        <span class="result-value" id="positive-count">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">阳性症状均分：</span>
+                        <span class="result-value" id="positive-average">0</span>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>各维度得分图表</h3>
+                    <canvas id="dimension-chart" width="800" height="400"></canvas>
+                </div>
+
+                <div class="dimensions">
+                    <h3>各维度得分</h3>
+                    <table id="dimension-table" class="dimension-table">
+                        <thead>
+                            <tr>
+                                <th>因子</th>
+                                <th>总分</th>
+                                <th>均分</th>
+                                <th>参考结果</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dimension-table-body">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="interpretation" id="interpretation">
+                    <h3>结果解释</h3>
+                    <p>测评结果仅供参考，不能作为诊断依据。如有需要，请咨询专业心理医生。</p>
+                </div>
+
+                <div class="dimension-interpretations" id="dimension-interpretations">
+                    <h3>各维度详细解释</h3>
+                </div>
+
+                <div class="guidance" id="guidance">
+                    <h3>心理疏导建议</h3>
+                </div>
+
+                <button id="restart-btn">重新测评</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
